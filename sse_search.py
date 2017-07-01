@@ -12,6 +12,8 @@ db = client[config.db_name]
 sse_list = db[config.db_collection]
 path = os.getcwd() + '/sse_list/'
 
+db.sse_list.drop()
+
 headers = {
     'Host': 'query.sse.com.cn',
     'Referer': 'http://www.sse.com.cn/disclosure/credibility/supervision/inquiries/',
@@ -60,7 +62,6 @@ def get_list(code, begin_time, final_time, fir_index, sec_index, thi_index, inde
     url = 'http://query.sse.com.cn/commonSoaQuery.do?jsonCallBack=jsonpCallback98128&siteId=28&sqlId=BS_GGLL&extGGLX=&extWTFL=&stockcode=' + code + \
           '&channelId=10743%2C10744%2C10012&createTime=begin_time+00%3A00%3A00&createTimeEnd=2017-07-01+23%3A59%3A59&extGGDL=&order=createTime%7Cdesc%2Cstockcode%7Casc&isPagination=true&pageHelp.pageSize=15&pageHelp.pageNo=1&pageHelp.beginPage=1&pageHelp.cacheSize=1&pageHelp.endPage=5&_=1498869654007'
 
-    url = 'http://query.sse.com.cn/commonSoaQuery.do?jsonCallBack=jsonpCallback18040&siteId=28&sqlId=BS_GGLL&extGGLX=&extWTFL=&stockcode=600643&channelId=10743%2C10744%2C10012&createTime=2017-06-01+00%3A00%3A00&createTimeEnd=2017-07-01+23%3A59%3A59&extGGDL=&order=createTime%7Cdesc%2Cstockcode%7Casc&isPagination=true&pageHelp.pageSize=15&pageHelp.pageNo=1&pageHelp.beginPage=1&pageHelp.cacheSize=1&pageHelp.endPage=5&_=1498870427118'
     r = requests.get(url, headers=headers)
     p = re.compile('jsonpCallback18040\((.*)\)')
     content = simplejson.loads(p.findall(r.text)[0])
