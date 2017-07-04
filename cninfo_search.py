@@ -1,25 +1,14 @@
 import requests
-import re
+import time
 import json
 import os
-import time
 from pymongo import MongoClient
 import config
-import simplejson
-import dict_name_code
 
 client = MongoClient(config.db_host, config.db_port)
 db = client[config.db_name]
-sse_list = db[config.db_collection]
-path = os.getcwd() + '/sse_list/'
-
-db.sse_list.drop()
-
-headers = {
-    'Host': 'query.sse.com.cn',
-    'Referer': 'http://www.sse.com.cn/disclosure/credibility/supervision/inquiries/',
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36'
-}
+cninfo_list = db[config.db_collection]
+path = os.getcwd() + '/scripts/cninfo_list/'
 
 
 def get_keywords(company, begin_time, over_time, sid):
@@ -59,45 +48,41 @@ def get_keywords(company, begin_time, over_time, sid):
                                          index, sid, tag_name)
 
 
-def get_list(company, begin_time, final_time, fir_index, sec_index, thi_index, index, sid, tag_name):
-    code=dict_name_code.get_code(company)
-    url = 'http://query.sse.com.cn/commonSoaQuery.do?jsonCallBack=jsonpCallback98128&siteId=28&sqlId=BS_GGLL&extGGLX=&extWTFL=&stockcode=' + code + \
-          '&channelId=10743%2C10744%2C10012&createTime=begin_time+00%3A00%3A00&createTimeEnd=2017-07-01+23%3A59%3A59&extGGDL=&order=createTime%7Cdesc%2Cstockcode%7Casc&isPagination=true&pageHelp.pageSize=15&pageHelp.pageNo=1&pageHelp.beginPage=1&pageHelp.cacheSize=1&pageHelp.endPage=5&_=1498869654007'
-
-    r = requests.get(url, headers=headers)
-    p = re.compile('jsonpCallback18040\((.*)\)')
-    content = simplejson.loads(p.findall(r.text)[0])
-    c = content['pageHelp']
-    for data in c['data']:
+def get_list(company, keyword, begin_time, final_time, fir_index, sec_index, thi_index, index, sid, tag_name):
+    url = 'http://www.cninfo.com.cn/cninfo-new/fulltextSearch/full?searchkey=' + company + keyword + \
+          '&isfulltext=false&sortType=desc&pageNum=1'
+    r = requests.get(url)
+    ans = r.json()['announcements']
+    for an in ans:
         # 格式化标题
-        # an['announcementTitle'] = an['announcementTitle'].replace('<em>', '').replace('</em>', '')
+        an['announcementTitle'] = an['announcementTitle'].replace('<em>', '').replace('</em>', '')
 
         # 时间比较
-        my_time = str(data['cmsOpDate'])
+        my_time = str(an['announcementTime'])[:-3]
         timeArray = time.localtime(int(my_time))
-        date = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
+        date = time.strftime("%Y-%m-%d", timeArray)
         timeArray2 = time.strptime(begin_time, "%Y-%m-%d")
         b_time = str(time.mktime(timeArray2))
         timeArray3 = time.strptime(final_time, "%Y-%m-%d")
         f_time = str(time.mktime(timeArray3))
 
-
         if b_time < my_time < f_time:
-            data['down_url'] = data['docURL']
-            data['index'] = index
-            data['company'] = company
-            data['date'] = date
-            data['tag_name'] = tag_name
-            data['fir_index'] = fir_index
-            data['sec_index'] = sec_index
-            data['thi_index'] = thi_index
-            data['sid'] = sid
-            sse_list.insert(data)
+            down_url = 'http://www.cninfo.com.cn/' + an['adjunctUrl']
+            an['down_url'] = down_url
+            an['index'] = index
+            an['company'] = company
+            an['date'] = date
+            an['tag_name'] = tag_name
+            an['fir_index'] = fir_index
+            an['sec_index'] = sec_index
+            an['thi_index'] = thi_index
+            an['sid'] = sid
+            cninfo_list.insert(an)
 
-            #下载文件
-            rr = requests.get(data['docURL'])
-            with open(path + '/' + data['docTitle'] + '.pdf', 'wb') as f:
-                f.write(rr.content)
+            # 下载文件
+            # rr = requests.get(down_url)
+            # with open(path + '/' + an['announcementTitle'] + '.pdf', 'wb') as f:
+            #     f.write(rr.content)
 
         else:
-            print(data['docTitle'] + '不合条件!!!')
+            print(an['announcementTitle'] + '不合条件!!!')
