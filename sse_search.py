@@ -10,8 +10,8 @@ import dict_name_code
 
 client = MongoClient(config.db_host, config.db_port)
 db = client[config.db_name]
-sse_list = db[config.db_collection]
-path = os.getcwd() + '/sse_list/'
+sse_list = db[config.db_sse_collection]
+path = os.getcwd() + '/'
 
 db.sse_list.drop()
 
@@ -59,34 +59,25 @@ def get_keywords(company, begin_time, over_time, sid):
                                          index, sid, tag_name)
 
 
-def get_list(company, begin_time, final_time, fir_index, sec_index, thi_index, index, sid, tag_name):
-    code=dict_name_code.get_code(company)
-    url = 'http://query.sse.com.cn/commonSoaQuery.do?jsonCallBack=jsonpCallback98128&siteId=28&sqlId=BS_GGLL&extGGLX=&extWTFL=&stockcode=' + code + \
-          '&channelId=10743%2C10744%2C10012&createTime=begin_time+00%3A00%3A00&createTimeEnd=2017-07-01+23%3A59%3A59&extGGDL=&order=createTime%7Cdesc%2Cstockcode%7Casc&isPagination=true&pageHelp.pageSize=15&pageHelp.pageNo=1&pageHelp.beginPage=1&pageHelp.cacheSize=1&pageHelp.endPage=5&_=1498869654007'
+def get_list(company, keyword, begin_time, over_time, fir_index, sec_index, thi_index, index, sid, tag_name):
+    try:
+        print('开始')
+        code = dict_name_code.get_code(company)
+        url = 'http://query.sse.com.cn/commonSoaQuery.do?jsonCallBack=jsonpCallback46016&siteId=28&sqlId=BS_GGLL&extGGLX=&extWTFL=&stockcode='+code+\
+              '&channelId=10743%2C10744%2C10012&createTime='+begin_time+'+00%3A00%3A00&createTimeEnd='+over_time+'+23%3A59%3A59&extGGDL=&order=createTime%7Cdesc%2Cstockcode%7Casc&isPagination=true&pageHelp.pageSize=15&pageHelp.pageNo=1&pageHelp.beginPage=1&pageHelp.cacheSize=1&pageHelp.endPage=5&_=1499240365278'
+        r = requests.get(url, headers=headers)
+        p = re.compile('jsonpCallback[0-9]{5}\((.*)\)')
+        content = simplejson.loads(p.findall(r.text)[0])
 
-    r = requests.get(url, headers=headers)
-    p = re.compile('jsonpCallback18040\((.*)\)')
-    content = simplejson.loads(p.findall(r.text)[0])
-    c = content['pageHelp']
-    for data in c['data']:
-        # 格式化标题
-        # an['announcementTitle'] = an['announcementTitle'].replace('<em>', '').replace('</em>', '')
-
-        # 时间比较
-        my_time = str(data['cmsOpDate'])
-        timeArray = time.localtime(int(my_time))
-        date = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
-        timeArray2 = time.strptime(begin_time, "%Y-%m-%d")
-        b_time = str(time.mktime(timeArray2))
-        timeArray3 = time.strptime(final_time, "%Y-%m-%d")
-        f_time = str(time.mktime(timeArray3))
+        c = content['pageHelp']
+        for data in c['data']:
 
 
-        if b_time < my_time < f_time:
+            # if b_time < my_time < f_time:
             data['down_url'] = data['docURL']
             data['index'] = index
             data['company'] = company
-            data['date'] = date
+            data['date'] = data['cmsOpDate'][0:10]
             data['tag_name'] = tag_name
             data['fir_index'] = fir_index
             data['sec_index'] = sec_index
@@ -94,10 +85,13 @@ def get_list(company, begin_time, final_time, fir_index, sec_index, thi_index, i
             data['sid'] = sid
             sse_list.insert(data)
 
-            #下载文件
-            rr = requests.get(data['docURL'])
-            with open(path + '/' + data['docTitle'] + '.pdf', 'wb') as f:
-                f.write(rr.content)
-
-        else:
-            print(data['docTitle'] + '不合条件!!!')
+            # 下载文件
+            # rr = requests.get('http://'+data['docURL'])
+            # with open(path + '/get_file/szse/' + data['docTitle'] + '.pdf', 'wb') as f:
+            #     f.write(rr.content)
+                #
+                # else:
+                #     print(data['docTitle'] + '不合条件!!!')
+    except:
+        print('有错,重跑')
+        get_list(company, keyword, begin_time, over_time, fir_index, sec_index, thi_index, index, sid, tag_name)
