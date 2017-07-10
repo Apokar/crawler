@@ -1,7 +1,6 @@
 import sse_search
 import cninfo_search
 import szse_search
-import dict_name_code
 import re
 import simplejson
 
@@ -9,8 +8,8 @@ import requests
 #
 # print(cninfo_search.get_keywords('联建光电','2017-06-01','2017-07-01','意见书'))
 # print(sse_search.get_keywords('*ST智慧','2017-06-01','2017-07-01','公告'))
-# sse_search.get_keywords('*ST智慧','2017-06-01','2017-07-01','公告')
-szse_search.get_keywords('华北高速','2017-06-01','2017-07-01','公告')
+sse_search.get_keywords('爱建集团','2017-06-01','2017-07-01','公告')
+# szse_search.get_keywords('华北高速','2017-06-01','2017-07-01','公告')
 #
 #
 # headers = {

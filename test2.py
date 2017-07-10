@@ -1,30 +1,28 @@
-import sse_search
-import cninfo_search
-import szse_search
-import dict_name_code
+import requests
 import re
 import simplejson
 
-import requests
+headers = {
+    'Host': 'query.sse.com.cn',
+    'Referer': 'http://www.sse.com.cn/disclosure/credibility/supervision/inquiries/',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36'
+}
+
+url = 'http://query.sse.com.cn/search/getSearchResult.do?search=qwjs&jsonCallBack=jQuery111206993248700197028_1499301464793&page=1&searchword=T_L+CTITLE+T_D+E_KEYWORDS+T_JT_E+T_L爱建集团*公告T_RT_R&orderby=-CRELEASETIME&perpage=10&_=1499301464816'
+
+r = requests.get(url, headers=headers)
+p = re.compile('jQuery[0-9]{21}_[0-9]{13}\((.*)\)')
+content = simplejson.loads(p.findall(r.text)[0])
+c = content['data']
+print(c)
 #
-#cninfo_search.get_keywords('联建光电','2017-06-01','2017-07-01','意见书')
-# print(sse_search.get_keywords('*ST智慧','2017-06-01','2017-07-01','公告'))
-sse_search.get_keywords('*ST智慧','2017-06-01','2017-07-01','公告')
-# szse_search.get_keywords('华北高速','2017-06-01','2017-07-01','公告')
+# for data in c:
+#     # dict['down_url'] = 'http://www.sse.com.cn'+c['CURL']
 #
-#
-# headers = {
-#     'Host': 'query.sse.com.cn',
-#     'Referer': 'http://www.sse.com.cn/disclosure/credibility/supervision/inquiries/',
-#     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36'
-# }
-#
-# url = 'http://query.sse.com.cn/commonSoaQuery.do?jsonCallBack=jsonpCallback46016&siteId=28&sqlId=BS_GGLL&extGGLX=&extWTFL=&stockcode=601519&channelId=10743%2C10744%2C10012&createTime=2017-05-01+00%3A00%3A00&createTimeEnd=2017-07-05+23%3A59%3A59&extGGDL=&order=createTime%7Cdesc%2Cstockcode%7Casc&isPagination=true&pageHelp.pageSize=15&pageHelp.pageNo=1&pageHelp.beginPage=1&pageHelp.cacheSize=1&pageHelp.endPage=5&_=1499240365278'
-#
-# r = requests.get(url, headers=headers)
-#
-# # p = re.compile('jsonpCallback[0-9]{5}\((.*)\)')
-# # content = simplejson.loads(p.findall(r.text)[0])
-# # c = content['pageHelp']
-# # for data in c['data']:
-# #     print(data)
+#     print(data['CRELEASETIME'])
+#     # dict['tag_name'] = tag_name
+    # dict['fir_index'] = fir_index
+    # dict['sec_index'] = sec_index
+    # dict['thi_index'] = thi_index
+    # dict['sid'] = sid
+    # sse_list.insert(data)

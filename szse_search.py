@@ -2,7 +2,6 @@ import requests
 import re
 import json
 import os
-import time
 from pymongo import MongoClient
 import config
 from bs4 import BeautifulSoup
